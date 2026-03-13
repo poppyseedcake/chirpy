@@ -15,7 +15,34 @@ export async function handlerChirpsValidate(req: Request, res: Response) {
       return;
     }
 
+    const [ hasProfane, newBody ] = hasProfaneWords(req.body);
+    if (hasProfane) {
+        respondWithJSON(res, 200, {
+            "cleanedBody": newBody,
+        })
+        return
+    }
+
     respondWithJSON(res, 200, {
       valid: true,
     });
+}
+
+function hasProfaneWords(reqBody: any) {
+    let hasProfane: boolean = false;
+    const profaneWords = ["kerfuffle", "sharbert", "fornax"];
+    const censure = "****";
+    const bodySplitLowerCase = reqBody.toLowerCase().split(" ");
+    const bodySplit = reqBody.split(" ");
+    for (const profaneWord of profaneWords) {
+        if (bodySplitLowerCase.includes(profaneWord)) {
+            const i = bodySplitLowerCase.indexOf(profaneWord);
+            bodySplit[i] = censure;
+            hasProfane = true;
+        }
+    }
+    const newBody = bodySplit.join(" ");
+    console.log(newBody);
+    return [ hasProfane, newBody ]
+
 }
