@@ -15,17 +15,17 @@ export async function handlerChirpsValidate(req: Request, res: Response) {
       return;
     }
 
-    const [ hasProfane, newBody ] = hasProfaneWords(req.body);
-    if (hasProfane) {
+    const [ hasProfane, newBody ] = hasProfaneWords(params.body);
+    //if (hasProfane) {
         respondWithJSON(res, 200, {
             "cleanedBody": newBody,
         })
-        return
-    }
+      //  return
+    //}
 
-    respondWithJSON(res, 200, {
-      valid: true,
-    });
+    //respondWithJSON(res, 200, {
+    //  valid: true,
+    //});
 }
 
 function hasProfaneWords(reqBody: any) {
