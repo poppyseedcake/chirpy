@@ -53,7 +53,15 @@ app.post("/api/users", async (req, res, next) => {
     next(err);
   }
 });
-//
+
+app.post("/api/chirps", (req, res, next) => {
+  try {
+    await handlerChirps(req, res);
+  } catch(err) {
+    next(err);
+  }
+});
+
 app.use(errorMiddleWare);
 
 app.listen(config.api.port, () => {
