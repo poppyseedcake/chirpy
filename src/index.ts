@@ -3,7 +3,7 @@ import { handlerReadiness } from "./api/readiness.js";
 import { errorMiddleWare, middlewareLogResponses, middlewareMetricsInc } from "./api/middleware.js";
 import { handlerMetrics } from "./api/metrics.js";
 import { handlerReset } from "./api/reset.js";
-import { handlerChirpsValidate } from "./api/chrips.js";
+import { handlerChirps } from "./api/chrips.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -42,9 +42,9 @@ app.post("/admin/reset", async (req, res, next) => {
   }
   });
 
-app.post("/api/validate_chirp", (req, res, next) => {
-  Promise.resolve(handlerChirpsValidate(req, res)).catch(next);
-});
+//app.post("/api/validate_chirp", (req, res, next) => {
+//  Promise.resolve(handlerChirpsValidate(req, res)).catch(next);
+//});
 
 app.post("/api/users", async (req, res, next) => {
   try {
@@ -54,7 +54,7 @@ app.post("/api/users", async (req, res, next) => {
   }
 });
 
-app.post("/api/chirps", (req, res, next) => {
+app.post("/api/chirps", async (req, res, next) => {
   try {
     await handlerChirps(req, res);
   } catch(err) {
