@@ -3,7 +3,7 @@ import { handlerReadiness } from "./api/readiness.js";
 import { errorMiddleWare, middlewareLogResponses, middlewareMetricsInc } from "./api/middleware.js";
 import { handlerMetrics } from "./api/metrics.js";
 import { handlerReset } from "./api/reset.js";
-import { handlerChirpsCreate } from "./api/chrips.js";
+import { handlerChirpsCreate, handlerChripsGetAll } from "./api/chirps.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -57,6 +57,15 @@ app.post("/api/users", async (req, res, next) => {
 app.post("/api/chirps", async (req, res, next) => {
   try {
     await handlerChirpsCreate(req, res);
+  } catch(err) {
+    next(err);
+  }
+});
+
+
+app.get("/api/chirps", async (req, res, next) => {
+  try {
+    await handlerChripsGetAll(req, res);
   } catch(err) {
     next(err);
   }
