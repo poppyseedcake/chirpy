@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 import { createUser, getUserByMail } from "../db/queries/users.js";
-import { BadRequestError, UserNotAuthenticatedError } from "./errors.js";
+import { BadRequestError, NotFoundError, UserNotAuthenticatedError } from "./errors.js";
 import { respondWithError, respondWithJSON } from "./json.js";
 import { checkPasswordHash, hashPassword } from "./auth.js";
 
@@ -44,12 +44,13 @@ export async function handlerUserLogin(req: Request, res: Response) {
 
   const user = await getUserByMail(params.email);
   if (!user) {
-    throw new Error("User not found.");
+    throw new NotFoundError("User not found.");
   }
 
-  const check = checkPasswordHash(params.password, user.hashed_password);
+  const check = await checkPasswordHash(params.password, user.hashed_password);
   if (!check) {
     respondWithError(res, 401, "incorrect email or password");
+    return;
   }
 
   respondWithJSON(res, 200, {

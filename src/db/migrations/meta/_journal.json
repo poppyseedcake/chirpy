@@ -22,6 +22,20 @@
       "when": 1774390952760,
       "tag": "0002_marvelous_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774734414705,
+      "tag": "0003_peaceful_stature",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774735697569,
+      "tag": "0004_foamy_thor",
+      "breakpoints": true
     }
   ]
 }
