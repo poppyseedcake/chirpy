@@ -15,7 +15,7 @@ export async function reset() {
   await db.delete(users);
 }
 
-export async function getUserByMail(email: string) {
+export async function getUserByEmail(email: string) {
   const [user] = await db
     .select()
     .from(users)

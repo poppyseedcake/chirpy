@@ -8,7 +8,8 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
-import { handlerUserLogin, handlerUsersCreate } from "./api/users.js";
+import { handlerUsersCreate } from "./api/users.js";
+import { handlerLogin } from "./api/auth.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -79,12 +80,8 @@ app.get("/api/chirps/:chirpId", async (req, res, next) => {
   }
 });
 
-app.post("/api/login", async (req, res, next) => {
-  try {
-    await handlerUserLogin(req, res);
-  } catch(err) {
-    next(err);
-  }
+app.post("/api/login", (req, res, next) => {
+  Promise.resolve(handlerLogin(req, res)).catch(next);
 });
 
 app.use(errorMiddleWare);

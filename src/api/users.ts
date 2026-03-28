@@ -1,23 +1,30 @@
 import type { Request, Response } from "express";
 
-import { createUser, getUserByMail } from "../db/queries/users.js";
-import { BadRequestError, NotFoundError, UserNotAuthenticatedError } from "./errors.js";
-import { respondWithError, respondWithJSON } from "./json.js";
-import { checkPasswordHash, hashPassword } from "./auth.js";
+import { createUser } from "../db/queries/users.js";
+import { BadRequestError } from "./errors.js";
+import { respondWithJSON } from "./json.js";
+import { NewUser } from "src/db/schema.js";
+import { hashPassword } from "../auth.js";
+
+export type UserResponse = Omit<NewUser, "hashedPassword">;
 
 export async function handlerUsersCreate(req: Request, res: Response) {
   type parameters = {
-    password: string;
     email: string;
+    password: string;
   };
   const params: parameters = req.body;
 
-  if (!params.email || !params.password) {
+  if (!params.password || !params.email) {
     throw new BadRequestError("Missing required fields");
   }
 
-  const hash = await hashPassword(params.password);
-  const user = await createUser({ email: params.email, hashed_password: hash});
+  const hashedPassword = await hashPassword(params.password);
+
+  const user = await createUser({
+    email: params.email,
+    hashedPassword,
+  } satisfies NewUser);
 
   if (!user) {
     throw new Error("Could not create user");
@@ -28,36 +35,5 @@ export async function handlerUsersCreate(req: Request, res: Response) {
     email: user.email,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-  });
-}
-
-export async function handlerUserLogin(req: Request, res: Response) {
-  type parameters = {
-    password: string;
-    email: string;
-  };
-  const params: parameters = req.body;
-
-  if (!params.email || !params.password) {
-    throw new BadRequestError("Missing required fields");
-  }
-
-  const user = await getUserByMail(params.email);
-  if (!user) {
-    throw new NotFoundError("User not found.");
-  }
-
-  const check = await checkPasswordHash(params.password, user.hashed_password);
-  if (!check) {
-    respondWithError(res, 401, "incorrect email or password");
-    return;
-  }
-
-  respondWithJSON(res, 200, {
-    id: user.id,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    email: user.email
-  })
-
+  } satisfies UserResponse);
 }

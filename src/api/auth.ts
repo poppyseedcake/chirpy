@@ -1,23 +1,36 @@
-import * as argon2 from "argon2";
+import { getUserByEmail } from "../db/queries/users.js";
+import { checkPasswordHash } from "../auth.js";
+import { respondWithJSON } from "./json.js";
+import { UserNotAuthenticatedError } from "./errors.js";
 
-export async function hashPassword(password: string): Promise<string> {
-try {
-    const hash = await argon2.hash(password);
-    return hash;
-} catch (err) {
-    throw new Error("Hashing error");
-}
+import type { Request, Response } from "express";
+import type { UserResponse } from "./users.js";
 
-}
+export async function handlerLogin(req: Request, res: Response) {
+  type parameters = {
+    password: string;
+    email: string;
+  };
 
-export async function checkPasswordHash(password: string, hash: string): Promise<boolean> {
-try {
-    if (await argon2.verify(hash, password)) {
-        return true;
-    } else {
-        return false;
-    }
-  } catch (err) {
-    throw new Error("Hashing error");
+  const params: parameters = req.body;
+
+  const user = await getUserByEmail(params.email);
+  if (!user) {
+    throw new UserNotAuthenticatedError("incorrect email or password");
   }
+
+  const matching = await checkPasswordHash(
+    params.password,
+    user.hashedPassword,
+  );
+  if (!matching) {
+    throw new UserNotAuthenticatedError("incorrect email or password");
+  }
+
+  respondWithJSON(res, 200, {
+    id: user.id,
+    email: user.email,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  } satisfies UserResponse);
 }
