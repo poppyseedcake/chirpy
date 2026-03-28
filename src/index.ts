@@ -1,4 +1,4 @@
-import express from "express";
+import express, { application } from "express";
 import { handlerReadiness } from "./api/readiness.js";
 import { errorMiddleWare, middlewareLogResponses, middlewareMetricsInc } from "./api/middleware.js";
 import { handlerMetrics } from "./api/metrics.js";
@@ -77,6 +77,10 @@ app.get("/api/chirps/:chirpId", async (req, res, next) => {
   } catch(err) {
     next(err);
   }
+});
+
+app.post("api/login", async (req, res, next) => {
+  
 });
 
 app.use(errorMiddleWare);
