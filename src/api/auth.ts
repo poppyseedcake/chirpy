@@ -2,9 +2,11 @@ import { getUserByEmail } from "../db/queries/users.js";
 import { checkPasswordHash } from "../auth.js";
 import { respondWithJSON } from "./json.js";
 import { UserNotAuthenticatedError } from "./errors.js";
+import jwt from "jsonwebtoken";
 
 import type { Request, Response } from "express";
 import type { UserResponse } from "./users.js";
+import type { JwtPayload } from "jsonwebtoken";
 
 export async function handlerLogin(req: Request, res: Response) {
   type parameters = {
