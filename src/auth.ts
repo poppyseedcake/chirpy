@@ -56,4 +56,3 @@ export function validateJWT(tokenString: string, secret: string) {
 
   return decoded.sub;
 }
-//
