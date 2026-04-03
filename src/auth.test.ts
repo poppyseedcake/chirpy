@@ -4,8 +4,10 @@ import {
   checkPasswordHash,
   makeJWT,
   validateJWT,
+  getBearerToken,
 } from "./auth.js";
 import { UserNotAuthenticatedError } from "./api/errors.js";
+import type { Request } from "express";
 
 describe("Password Hashing", () => {
   const password1 = "correctPassword123!";
@@ -71,4 +73,22 @@ describe("JWT Functions", () => {
     );
   });
 });
-//
+
+describe("getBearerToken", () => {
+  it("should return the token from a valid Authorization header", () => {
+    const req = { get: () => "Bearer mytoken123" } as unknown as Request;
+    expect(getBearerToken(req)).toBe("mytoken123");
+  });
+  it("should throw an error when Authorization header is missing", () => {
+    const req = { get: () => undefined } as unknown as Request;
+    expect(() => getBearerToken(req)).toThrow(UserNotAuthenticatedError);
+  });
+  it("should throw an error when Authorization header has no Bearer prefix", () => {
+    const req = { get: () => "mytoken123" } as unknown as Request;
+    expect(() => getBearerToken(req)).toThrow(UserNotAuthenticatedError);
+  });
+  it("should handle extra whitespace around the token", () => {
+    const req = { get: () => "Bearer   mytoken123  " } as unknown as Request;
+    expect(getBearerToken(req)).toBe("mytoken123");
+  });
+});
