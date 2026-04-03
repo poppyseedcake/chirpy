@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 import { respondWithJSON } from "./json.js";
-import { createChirp, getChirps, getChirpById} from "../db/queries/chirps.js";
+import { createChirp, getChirp, getChirps } from "../db/queries/chirps.js";
 import { BadRequestError, NotFoundError } from "./errors.js";
 import { getBearerToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
@@ -9,26 +9,17 @@ import { config } from "../config.js";
 export async function handlerChirpsCreate(req: Request, res: Response) {
   type parameters = {
     body: string;
-    userId: string;
-    token: string;
   };
 
   const params: parameters = req.body;
 
   const token = getBearerToken(req);
-  params.token = token;
-
-  const userId = validateJWT(token, config.api.secret);
+  const userId = validateJWT(token, config.jwt.secret);
 
   const cleaned = validateChirp(params.body);
-  const chirp = await createChirp({ body: cleaned, userId});
+  const chirp = await createChirp({ body: cleaned, userId: userId });
 
   respondWithJSON(res, 201, chirp);
-}
-
-export async function handlerChripsGetAll(req: Request, res: Response) {
-  const chirps = await getChirps();
-  respondWithJSON(res, 200, chirps);
 }
 
 function validateChirp(body: string) {
@@ -58,13 +49,22 @@ function getCleanedBody(body: string, badWords: string[]) {
   return cleaned;
 }
 
-export async function handlerChirpById(req: Request, res: Response) {
-  const chirpId = req.params.chirpId as string;
-  const chirp = await getChirpById(chirpId);
-  
-  if (!chirp) {
-    throw new NotFoundError("Chirp not found");
+export async function handlerChirpsRetrieve(_: Request, res: Response) {
+  const chirps = await getChirps();
+  respondWithJSON(res, 200, chirps);
+}
+
+export async function handlerChirpsGet(req: Request, res: Response) {
+  const { chirpId } = req.params;
+
+  if (typeof chirpId !== "string") {
+    throw new BadRequestError("Invalid chirp ID");
   }
-  
+
+  const chirp = await getChirp(chirpId);
+  if (!chirp) {
+    throw new NotFoundError(`Chirp with chirpId: ${chirpId} not found`);
+  }
+
   respondWithJSON(res, 200, chirp);
 }

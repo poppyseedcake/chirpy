@@ -4,10 +4,9 @@ import {
   checkPasswordHash,
   makeJWT,
   validateJWT,
-  getBearerToken,
+  extractBearerToken,
 } from "./auth.js";
-import { UserNotAuthenticatedError } from "./api/errors.js";
-import type { Request } from "express";
+import { BadRequestError, UserNotAuthenticatedError } from "./api/errors.js";
 
 describe("Password Hashing", () => {
   const password1 = "correctPassword123!";
@@ -74,21 +73,31 @@ describe("JWT Functions", () => {
   });
 });
 
-describe("getBearerToken", () => {
-  it("should return the token from a valid Authorization header", () => {
-    const req = { get: () => "Bearer mytoken123" } as unknown as Request;
-    expect(getBearerToken(req)).toBe("mytoken123");
+describe("extractBearerToken", () => {
+  it("should extract the token from a valid header", () => {
+    const token = "mySecretToken";
+    const header = `Bearer ${token}`;
+    expect(extractBearerToken(header)).toBe(token);
   });
-  it("should throw an error when Authorization header is missing", () => {
-    const req = { get: () => undefined } as unknown as Request;
-    expect(() => getBearerToken(req)).toThrow(UserNotAuthenticatedError);
+
+  it("should extract the token even if there are extra parts", () => {
+    const token = "mySecretToken";
+    const header = `Bearer ${token} extra-data`;
+    expect(extractBearerToken(header)).toBe(token);
   });
-  it("should throw an error when Authorization header has no Bearer prefix", () => {
-    const req = { get: () => "mytoken123" } as unknown as Request;
-    expect(() => getBearerToken(req)).toThrow(UserNotAuthenticatedError);
+
+  it("should throw a BadRequestError if the header does not contain at least two parts", () => {
+    const header = "Bearer";
+    expect(() => extractBearerToken(header)).toThrow(BadRequestError);
   });
-  it("should handle extra whitespace around the token", () => {
-    const req = { get: () => "Bearer   mytoken123  " } as unknown as Request;
-    expect(getBearerToken(req)).toBe("mytoken123");
+
+  it('should throw a BadRequestError if the header does not start with "Bearer"', () => {
+    const header = "Basic mySecretToken";
+    expect(() => extractBearerToken(header)).toThrow(BadRequestError);
+  });
+
+  it("should throw a BadRequestError if the header is an empty string", () => {
+    const header = "";
+    expect(() => extractBearerToken(header)).toThrow(BadRequestError);
   });
 });
