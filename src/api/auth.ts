@@ -1,13 +1,14 @@
 import { getUserByEmail } from "../db/queries/users.js";
-import { checkPasswordHash, makeJWT, makeRefreshToken } from "../auth.js";
-import { respondWithJSON } from "./json.js";
+import { checkPasswordHash, getBearerToken, makeJWT, makeRefreshToken } from "../auth.js";
+import { respondWithError, respondWithJSON } from "./json.js";
 import { UserNotAuthenticatedError } from "./errors.js";
 
 import type { Request, Response } from "express";
 import type { UserResponse } from "./users.js";
 import { config } from "../config.js";
-import { refresh_tokens, RefreshToken } from "src/db/schema.js";
-import { db } from "src/db/index.js";
+import { refresh_tokens, RefreshToken } from "../db/schema.js";
+import { db } from "../db/index.js";
+import { eq } from "drizzle-orm";
 
 type LoginResponse = UserResponse & {
   token: string;
@@ -50,7 +51,7 @@ export async function handlerLogin(req: Request, res: Response) {
     expires_at: expiresAt,
   }
 
-  const insert = await inserToken(ref_token);
+  const insert = await insertToken(ref_token);
 
   respondWithJSON(res, 200, {
     id: user.id,
@@ -62,7 +63,7 @@ export async function handlerLogin(req: Request, res: Response) {
   } satisfies LoginResponse);
 }
 
-async function inserToken(ref_token: RefreshToken) {
+async function insertToken(ref_token: RefreshToken) {
   const [result] = await db
     .insert(refresh_tokens)
     .values(ref_token)
@@ -70,3 +71,57 @@ async function inserToken(ref_token: RefreshToken) {
     .returning();
   return result;
 }
+
+async function findToken(token: string) {
+  const rows = await db.select().from(refresh_tokens).where(eq(refresh_tokens.token, token));
+  if (rows.length === 0) {
+    return;
+  }
+  return rows[0];
+}
+
+export async function handlerRefresh(req: Request, res: Response) {
+  const refreshToken = getBearerToken(req);
+
+    const dbToken = await findToken(refreshToken);
+    
+    if (!dbToken) {
+        respondWithError(res, 401, "Token not found");
+        return;
+    }
+
+    if (dbToken.revoked_at != null) {
+        respondWithError(res, 401, "Token revoked");
+        return;
+    }
+
+    if (dbToken.expires_at != null && dbToken.expires_at < new Date) {
+        respondWithError(res, 401, "Token expired");
+        return;
+    }
+
+    const newAccessToken = makeJWT(dbToken.user_id, config.jwt.defaultDuration, config.jwt.secret);
+    respondWithJSON(res, 200, { "token": newAccessToken});
+}
+
+export async function handlerRevoke(req: Request, res: Response) {
+    const refreshToken = getBearerToken(req);
+    const dbToken = await findToken(refreshToken);
+    
+    if (!dbToken) {
+        respondWithError(res, 401, "Token not found");
+        return;
+    }
+    if (dbToken.revoked_at != null) {
+        respondWithError(res, 401, "Token already revoked");
+        return;
+    }
+    await db
+      .update(refresh_tokens)
+      .set({ 
+        revoked_at: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(refresh_tokens.token, refreshToken));
+    res.status(204).send();
+  }

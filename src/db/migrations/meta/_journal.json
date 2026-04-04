@@ -36,6 +36,13 @@
       "when": 1774735697569,
       "tag": "0004_foamy_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775340302493,
+      "tag": "0005_wakeful_skin",
+      "breakpoints": true
     }
   ]
 }
