@@ -43,6 +43,13 @@
       "when": 1775340302493,
       "tag": "0005_wakeful_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775341976419,
+      "tag": "0006_chubby_ironclad",
+      "breakpoints": true
     }
   ]
 }
