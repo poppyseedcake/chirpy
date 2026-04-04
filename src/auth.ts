@@ -4,6 +4,7 @@ import type { JwtPayload } from "jsonwebtoken";
 
 import { BadRequestError, UserNotAuthenticatedError } from "./api/errors.js";
 import { Request } from "express";
+import { randomBytes } from "node:crypto";
 
 const TOKEN_ISSUER = "chirpy";
 
@@ -73,4 +74,8 @@ export function extractBearerToken(header: string) {
     throw new BadRequestError("Malformed authorization header");
   }
   return splitAuth[1];
+}
+
+export function makeRefreshToken() {
+    return randomBytes(32).toString('hex');
 }
