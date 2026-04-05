@@ -69,7 +69,7 @@ export async function handlerChirpsGet(req: Request, res: Response) {
   respondWithJSON(res, 200, chirp);
 }
 
-export async function handlerDelete(req: Request, res: Response) {
+export async function handlerChirpsDelete(req: Request, res: Response) {
   const { chirpId } = req.params;
 
   if (typeof chirpId !== "string") {
@@ -77,15 +77,21 @@ export async function handlerDelete(req: Request, res: Response) {
   }
 
   const token = getBearerToken(req);
-  const subject = validateJWT(token, config.jwt.secret);
+  const userId = validateJWT(token, config.jwt.secret);
 
   const chirp = await getChirp(chirpId);
+  if (!chirp) {
+    throw new NotFoundError(`Chirp with chirpId: ${chirpId} not found`);
+  }
 
-  if (subject != chirp?.userId) {
-    throw new UserForbiddenError("Forbidden");
+  if (chirp.userId !== userId) {
+    throw new UserForbiddenError("You can't delete this chirp");
   }
 
   const deleted = await deleteChirp(chirpId);
+  if (!deleted) {
+    throw new Error(`Failed to delete chirp with chirpId: ${chirpId}`);
+  }
 
   res.status(204).send();
 }
