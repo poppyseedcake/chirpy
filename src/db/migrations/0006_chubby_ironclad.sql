@@ -13,6 +13,6 @@
     Hope to release this update as soon as possible
 */
 
--- ALTER TABLE "refresh_tokens" DROP CONSTRAINT "<constraint_name>";--> statement-breakpoint
+ALTER TABLE "refresh_tokens" DROP CONSTRAINT "refresh_tokens_pkey";--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ALTER COLUMN "token" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ALTER COLUMN "expires_at" SET NOT NULL;

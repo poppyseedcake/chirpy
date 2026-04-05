@@ -8,7 +8,7 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
-import { handlerUsersCreate, handlerUserUpdate } from "./api/users.js";
+import { handlerUsersCreate, handlerUsersUpdate } from "./api/users.js";
 import { handlerLogin, handlerRefresh, handlerRevoke } from "./api/auth.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
@@ -56,7 +56,7 @@ app.post("/api/users", async (req, res, next) => {
 });
 
 app.put("/api/users", async (req, res, next) => {
-  Promise.resolve(handlerUserUpdate(req, res)).catch(next);
+  Promise.resolve(handlerUsersUpdate(req, res)).catch(next);
 });
 
 app.post("/api/chirps", async (req, res, next) => {
