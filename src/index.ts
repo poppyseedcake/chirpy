@@ -8,7 +8,7 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
-import { handlerUsersCreate, handlerUsersUpdate } from "./api/users.js";
+import { handlerRedUpdate, handlerUsersCreate, handlerUsersUpdate } from "./api/users.js";
 import { handlerLogin, handlerRefresh, handlerRevoke } from "./api/auth.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
@@ -99,6 +99,10 @@ app.post("/api/refresh", (req, res, next) => {
 app.post("/api/revoke", (req, res, next) => {
   Promise.resolve(handlerRevoke(req, res)).catch(next);
 });
+
+app.post("/api/polka/webhooks", (req, res, next) => {
+  Promise.resolve(handlerRedUpdate(req, res)).catch(next);
+})
 
 
 app.use(errorMiddleWare);

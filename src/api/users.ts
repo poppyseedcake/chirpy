@@ -1,13 +1,14 @@
 import type { Request, Response } from "express";
 
-import { createUser, updateUser } from "../db/queries/users.js";
-import { BadRequestError } from "./errors.js";
+import { createUser, updateRed, updateUser } from "../db/queries/users.js";
+import { BadRequestError, NotFoundError } from "./errors.js";
 import { respondWithJSON } from "./json.js";
 import { NewUser } from "src/db/schema.js";
 import { getBearerToken, hashPassword, validateJWT } from "../auth.js";
 import { config } from "../config.js";
 
-export type UserResponse = Omit<NewUser, "hashedPassword">;
+//export type UserResponse = Omit<NewUser, "hashedPassword">;
+export type UserResponse = Omit<NewUser, "hashedPassword" | "is_chirpy_red"> & { isChirpyRed: boolean };
 
 export async function handlerUsersCreate(req: Request, res: Response) {
   type parameters = {
@@ -36,6 +37,8 @@ export async function handlerUsersCreate(req: Request, res: Response) {
     email: user.email,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    //is_chirpy_red: user.is_chirpy_red,
+    isChirpyRed: Boolean(user.is_chirpy_red),
   } satisfies UserResponse);
 }
 
@@ -63,6 +66,34 @@ export async function handlerUsersUpdate(req: Request, res: Response) {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     email: user.email,
+    //is_chirpy_red: user.is_chirpy_red,
+    isChirpyRed: Boolean(user.is_chirpy_red),
   } satisfies UserResponse);
 }
 
+export async function handlerRedUpdate(req: Request, res: Response) {
+  console.log("HANDLER RED UPDATE");
+  type parameters = {
+    event: string;
+    data: {
+        userId: string
+    };
+  };
+  const params: parameters = req.body;
+  console.log(`Params: `)
+  console.log(JSON.stringify(params, null, 4));
+
+  if (params.event != "user.upgraded") {
+    res.status(204).send();
+    return;
+  }
+
+  const updated = await updateRed(params.data.userId);
+  console.log(`updated: `);
+  console.log(JSON.stringify(updated, null, 4));
+  if (!updated) {
+    throw new NotFoundError("User not found.");
+  }
+
+  res.status(204).send();
+}
