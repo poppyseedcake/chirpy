@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   hashedPassword: varchar("hashed_password", { length: 256 })
     .notNull()
     .default("unset"),
-  is_chirpy_red: boolean().default(false),
+  isChirpyRed: boolean("is_chirpy_red").default(false).notNull(),
 });
 
 export type NewUser = typeof users.$inferInsert;

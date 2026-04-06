@@ -1,1 +1,1 @@
-ALTER TABLE "users" ADD COLUMN "is_chirpy_red" boolean DEFAULT false;
+ALTER TABLE "users" ADD COLUMN "is_chirpy_red" boolean DEFAULT false NOT NULL;
