@@ -87,10 +87,10 @@ export function getAPIKey(req: Request) {
     throw new UserNotAuthenticatedError("Malformed authorization header");
   }
 
-  return extractAPIKey(authHeader);
+  return extractApiKey(authHeader);
 }
 
-export function extractAPIKey(header: string) {
+export function extractApiKey(header: string) {
   const splitAuth = header.split(" ");
   if (splitAuth.length < 2 || splitAuth[0] !== "ApiKey") {
     throw new BadRequestError("Malformed authorization header");
