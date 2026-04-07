@@ -9,10 +9,11 @@ export async function createChirp(chirp: NewChirp) {
 }
 
 export async function getChirps(authorId?: string) {
-  if (authorId) {
-    return db.select().from(chirps).where(eq(chirps.userId, authorId)).orderBy(asc(chirps.createdAt));
-  }
-  return db.select().from(chirps).orderBy(asc(chirps.createdAt));
+  return db
+    .select()
+    .from(chirps)
+    .where(authorId ? eq(chirps.userId, authorId) : undefined)
+    .orderBy(asc(chirps.createdAt));
 }
 
 export async function getChirp(id: string) {
